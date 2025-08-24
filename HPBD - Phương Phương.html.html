@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thiệp Sinh Nhật (Mật khẩu)</title>
+  <style>
+    :root{
+      --bg1:#ffecd2;
+      --bg2:#fcb69f;
+      --card:#ffffffee;
+      --accent:#ff4d6d;
+      --accent-2:#845ef7;
+      --text:#222;
+      --muted:#666;
+      --success:#2ec4b6;
+      --error:#ef476f;
+      --shadow: 0 10px 30px rgba(0,0,0,.12);
+      --radius: 24px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", system-ui, sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 20% 10%, #fff6, #fff0),
+                  linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
+    }
+    .wrap{
+      min-height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:32px 20px;
+    }
+    .card{
+      width:100%;
+      max-width:720px;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(6px);
+      border:1px solid #fff6;
+      position:relative;
+    }
+    .header{
+      padding:28px 24px 12px;
+      text-align:center;
+      background:linear-gradient(180deg, #ffffffaa, #ffffff00);
+    }
+    .title{
+      margin:0 0 6px;
+      font-size: clamp(22px, 4vw, 30px);
+      line-height:1.2;
+      letter-spacing:.2px;
+    }
+    .subtitle{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .content{padding:22px; display:grid; gap:16px;}
+    .gate{
+      display:flex; flex-direction:column; gap:14px;
+      align-items:center; justify-content:center;
+      padding:10px 0 20px;
+    }
+    .input-row{
+      width:100%; display:flex; gap:10px;
+    }
+    input[type="password"], input[type="text"]{
+      flex:1;
+      padding:14px 16px;
+      border-radius:14px;
+      border:1.5px solid #e8e8e8;
+      outline:none;
+      font-size:16px;
+      transition:.2s border-color, .2s box-shadow;
+      background:white;
+    }
+    input:focus{
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px #ff4d6d22;
+    }
+    .btn{
+      padding:12px 16px;
+      border:none; border-radius:14px;
+      background: linear-gradient(135deg, var(--accent), #ff7aa2);
+      color:white; font-weight:600; font-size:15px;
+      cursor:pointer; transition:.2s transform ease, .25s opacity ease;
+      box-shadow: 0 6px 16px #ff4d6d55;
+      min-width:120px;
+    }
+    .btn[disabled]{opacity:.6; cursor:not-allowed; box-shadow:none}
+    .hint{font-size:13px; color:var(--muted)}
+    .error{color:var(--error); font-weight:600; min-height:20px}
+    .success{color:var(--success); font-weight:600}
+    .shake{ animation:shake .35s linear }
+    @keyframes shake{
+      0%,100%{ transform:translateX(0) }
+      25%{ transform:translateX(-6px) }
+      50%{ transform:translateX(6px) }
+      75%{ transform:translateX(-3px) }
+    }
+    .hidden{ display:none !important }
+    /* Celebration screen */
+    .hero{
+      display:grid; gap:18px;
+      align-items:center; justify-items:center;
+      text-align:center; padding:4px 4px 14px;
+      position:relative;
+    }
+    .big-emoji{
+      font-size: clamp(40px, 10vw, 90px);
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,.15));
+      transform: translateZ(0);
+    }
+    .headline{
+      margin:0;
+      font-size: clamp(22px, 5vw, 36px);
+      line-height:1.2;
+    }
+    .message{
+      max-width: 58ch;
+      font-size: clamp(15px, 3.5vw, 18px);
+      color:#333;
+      line-height:1.65;
+      padding: 0 6px;
+      white-space:pre-wrap;
+    }
+    .controls{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center }
+    .btn.secondary{
+      background: linear-gradient(135deg, var(--accent-2), #a78bfa);
+      box-shadow: 0 6px 16px #845ef766;
+    }
+    .foot{ padding: 10px 20px 22px; text-align:center; color:var(--muted); font-size:12px }
+    /* Hearts (CSS-only) */
+    .hearts{
+      pointer-events:none;
+      position:absolute; inset:0; overflow:hidden;
+    }
+    .heart{
+      --size: 12px;
+      width:var(--size); height:var(--size);
+      position:absolute; left:50%; top:100%;
+      transform: translateX(-50%) scale(1);
+      background:var(--accent);
+      rotate:45deg;
+      animation: floatUp var(--dur) ease-out forwards;
+      opacity:.85;
+    }
+    .heart::before,.heart::after{
+      content:""; position:absolute;
+      width:var(--size); height:var(--size);
+      border-radius:50%;
+      background:inherit;
+      left:0; top:-50%;
+    }
+    .heart::after{ left:-50%; top:0 }
+    @keyframes floatUp{
+      0%{ transform: translate(-50%, 0) scale(1); opacity:.9 }
+      60%{ opacity:.95 }
+      100%{ transform: translate(-50%, -120vh) scale(0.9); opacity:0 }
+    }
+    /* Confetti canvas sits behind the card */
+    #confetti{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .card{ z-index:1 }
+    .tag{
+      display:inline-flex; align-items:center; gap:8px;
+      background:#fff; border:1px dashed #0001; padding:8px 12px;
+      border-radius:999px; font-size:13px; color:#333c; margin-top:4px;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background:#0000000d; padding:2px 6px; border-radius:6px; border:1px solid #0001;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <main class="wrap">
+    <section class="card">
+      <div class="header">
+        <h1 class="title">🎁 Món quà nhỏ dành cho Phương Phương iu dấu của chị</h1>
+        <p class="subtitle">Nhập đúng mật khẩu để mở món quà nhỏ nha!</p>
+              </div>
+
+      <div class="content">
+        <!-- Gate -->
+        <div id="gate" class="gate">
+          <div class="input-row">
+            <input id="pw" type="password" autocomplete="off" placeholder="Nhập mật khẩu..." />
+            <button id="openBtn" class="btn" disabled>Mở quà</button>
+          </div>
+          <div id="err" class="error"></div>
+          <div class="hint">* Phương Phương cùng Trâm Trâm yêu thương nhau nhaaa <b>CONFIG</b> script.</div>
+        </div>
+
+        <!-- Celebration -->
+        <div id="celebrate" class="hero hidden">
+          <div class="hearts" aria-hidden="true"></div>
+          <div class="big-emoji" id="emoji" role="img" aria-label="emoji">🎂</div>
+          <h2 class="headline" id="headline">Chúc mừng sinh nhật!</h2>
+          <p class="message" id="msg"></p>
+
+          <div class="controls">
+            <button id="replay" class="btn">Xem lại pháo giấy</button>
+            <button id="reset" class="btn secondary">Đặt lại</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot">
+        Made by Trâm Trâm with love 💖 |
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // =====================
+    // CONFIG (chỉnh ở đây)
+    // =====================
+    const CONFIG = {
+      PASSWORD: "2508",              // Mật khẩu muốn đặt
+      CASE_SENSITIVE: false,           // true = phân biệt hoa/thường
+      RECEIVER: "bé Phương iu dấu",              // Tên người nhận
+      TITLE: "Happy Birthday Phương Phương! 🎉",
+      EMOJI: "🎂",
+      MESSAGE: "Chúc mừng sinh nhật, {name}!Chúc bé iu luôn vui vẻ, khoẻ mạnh, gặp nhiều may mắn và mọi điều bình an. Hãy luôn cười thật tươi nha vì chị sẽ luôn đồng hành cùng bé! 💖",
+      CONFETTI_DURATION: 10000,         // thời gian bắn pháo giấy (ms)
+      HEARTS_DURATION: 10000            // thời gian thả tim (ms)
+      // Bạn có thể thêm ảnh nền cho body bằng CSS nếu muốn
+    };
+
+    // =====================
+    // Helper functions
+    // =====================
+    const $ = (s)=> document.querySelector(s);
+    const pwInput = $("#pw");
+    const openBtn = $("#openBtn");
+    const gate = $("#gate");
+    const err = $("#err");
+    const celebrate = $("#celebrate");
+    const headline = $("#headline");
+    const message = $("#msg");
+    const emoji = $("#emoji");
+    const heartsLayer = document.querySelector(".hearts");
+    const replayBtn = $("#replay");
+    const resetBtn = $("#reset");
+
+    // Init UI per CONFIG
+    emoji.textContent = CONFIG.EMOJI;
+    headline.textContent = CONFIG.TITLE;
+
+    function normalize(s){
+      return CONFIG.CASE_SENSITIVE ? s : (s || "").toLowerCase().trim();
+    }
+
+    function checkPassword(){
+      const val = pwInput.value;
+      const ok = normalize(val) === normalize(CONFIG.PASSWORD);
+      if(ok){
+        openCard();
+      }else{
+        wrongPw();
+      }
+    }
+
+    function wrongPw(){
+      err.textContent = "Sai mật khẩu rồi, thử lại nha!";
+      pwInput.classList.remove("shake");
+      void pwInput.offsetWidth; // reflow
+      pwInput.classList.add("shake");
+    }
+
+    function openCard(){
+      err.textContent = "";
+      gate.classList.add("hidden");
+      celebrate.classList.remove("hidden");
+      // Personalize message
+      const text = CONFIG.MESSAGE.replaceAll("{name}", CONFIG.RECEIVER);
+      typewriter(message, text, 18);
+      // Fire!
+      startConfetti(CONFIG.CONFETTI_DURATION);
+      spawnHearts(CONFIG.HEARTS_DURATION);
+    }
+
+    // Typewriter effect
+    function typewriter(el, text, speed=16){
+      el.textContent = "";
+      let i = 0;
+      const timer = setInterval(()=>{
+        el.textContent += text[i] || "";
+        i++;
+        if(i >= text.length) clearInterval(timer);
+      }, speed);
+    }
+
+    // Hearts
+    function spawnHearts(duration=4000){
+      const start = performance.now();
+      const tick = (t)=>{
+        const elapsed = t - start;
+        if(elapsed < duration){
+          // spawn one heart per frame ~60fps -> but we throttle
+          if(Math.random() < 0.2){
+            const h = document.createElement("div");
+            h.className = "heart";
+            const size = 10 + Math.random()*18;
+            const x = 10 + Math.random()*80; // % across width
+            const hue = 330 + Math.random()*40; // pinkish
+            h.style.setProperty("--size", size+"px");
+            h.style.left = x + "%";
+            h.style.setProperty("--dur", (4+Math.random()*3)+"s");
+            h.style.background = `hsl(${hue} 90% 60%)`;
+            heartsLayer.appendChild(h);
+            setTimeout(()=> h.remove(), 8000);
+          }
+          requestAnimationFrame(tick);
+        }
+      };
+      requestAnimationFrame(tick);
+    }
+
+    // Confetti (simple canvas)
+    const canvas = document.getElementById("confetti");
+    const ctx = canvas.getContext("2d");
+    let confettiPieces = [];
+    let confettiAnimating = false;
+    function resizeCanvas(){
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function startConfetti(ms=4000){
+      confettiAnimating = true;
+      confettiPieces = createConfetti(200);
+      const start = performance.now();
+      function frame(t){
+        const elapsed = t - start;
+        drawConfetti();
+        if(elapsed < ms && confettiAnimating){
+          requestAnimationFrame(frame);
+        }else{
+          confettiAnimating = false;
+          // allow a short tail clear
+          setTimeout(()=> confettiPieces = [], 800);
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function createConfetti(n){
+      const arr = [];
+      for(let i=0;i<n;i++){
+        arr.push({
+          x: Math.random()*canvas.width,
+          y: -20 - Math.random()*canvas.height*0.5,
+          w: 6 + Math.random()*6,
+          h: 10 + Math.random()*10,
+          color: `hsl(${Math.random()*360} 90% 60%)`,
+          vy: 2 + Math.random()*3,
+          vx: -2 + Math.random()*4,
+          rot: Math.random()*Math.PI,
+          vr: -0.1 + Math.random()*0.2
+        });
+      }
+      return arr;
+    }
+
+    function drawConfetti(){
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+      for(const p of confettiPieces){
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vr;
+        if(p.y > canvas.height + 40){
+          p.y = -20;
+          p.x = Math.random()*canvas.width;
+        }
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+        ctx.restore();
+      }
+    }
+
+    // Events
+    pwInput.addEventListener("input", ()=>{
+      openBtn.disabled = pwInput.value.trim().length === 0;
+    });
+    openBtn.addEventListener("click", checkPassword);
+    pwInput.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter" && pwInput.value.trim()) checkPassword();
+    });
+    replayBtn.addEventListener("click", ()=>{
+      startConfetti(CONFIG.CONFETTI_DURATION);
+      spawnHearts(CONFIG.HEARTS_DURATION);
+    });
+    resetBtn.addEventListener("click", ()=>{
+      celebrate.classList.add("hidden");
+      gate.classList.remove("hidden");
+      pwInput.value = "";
+      openBtn.disabled = true;
+      err.textContent = "";
+      pwInput.focus();
+    });
+  </script>
+</body>
+</html>
